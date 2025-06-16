@@ -5,7 +5,8 @@ echo "================== certificate authority ====================="
 # --home:  你的名字 或 网络名字 或 你养的宠物狗的名字,如:libai, dufu, sangbiao, wangcai;
 # --lan:  Custom top-level domain name: lan, local, host, localhost
 # --lan:  自定义的顶级域名: lan, local, host, localhost
-./createCertAuth.sh --home "libai" --lan "host"
+./createCertAuth.sh -a "rsa" --home "john" --lan "local"
+./createCertAuth.sh -a "ec"  --home "libai" --lan "host"
 
 echo "================== certificate authority List ====================="
 # The list of certificates generated in step [createCertAuth.sh]
