@@ -20,7 +20,7 @@ while [[ $# -gt 0 ]]; do
     shift 2
     ;;
   -a | --algorithm)
-    algorithm="$2"
+    algorithm="${2,,}"
     shift 2
     ;;
   -d | --dist)
@@ -57,16 +57,29 @@ SUBJ_server="/C=$SubjC/ST=$SubjST/L=$SubjL/O=${site_name}/OU=${site_name} networ
 # . ./config.sh --site-name "$1" --ca-name "$CA_NAME" web
 
 mkdir -p $Server_dir
+CNF="${Server_dir}/server_cert.cnf"
+cat << EOF > $CNF
+[ server_cert ]
+basicConstraints = CA:FALSE
+nsCertType = server
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = DNS:${site_name}
+EOF
+
 echo "[web app openssl genpkey]"
-if [ "${algorithm^^}" = "RSA" ]; then
-  openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:secp256k1 -out "$Server_key"
-else
+if [ "${algorithm,,}" = "rsa" ]; then
   openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "$Server_key"
+else
+  openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:secp256k1 -out "$Server_key"
 fi
 
 echo "[web app openssl req]"
 
-openssl req -key "$Server_key" -new -out "$Server_csr" -subj "$SUBJ_server"
+openssl req -key "$Server_key" -new -out "$Server_csr" -subj "$SUBJ_server"  -config $CNF
 
 echo "[web app openssl x509]"
-openssl x509 -req -CA "${CA_TargetCrt}" -CAkey "${CA_TargetKey}" -CAcreateserial -in "$Server_csr" -out "$Server_crt" -days $Days
+openssl x509 -req \
+  -CA "${CA_TargetCrt}" -CAkey "${CA_TargetKey}" -CAcreateserial -in "$Server_csr" \
+  -extfile $CNF -extensions server_cert \
+  -out "$Server_crt" -days $Days

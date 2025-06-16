@@ -22,7 +22,7 @@ while [[ $# -gt 0 ]]; do
     shift 2
     ;;
   -a | --algorithm)
-    algorithm="$2"
+    algorithm="${2,,}"
     shift 2
     ;;
   -d | --dist)
@@ -48,10 +48,10 @@ mkdir -p $TargetDir
 
 echo "[certificate authority openssl genpkey]"
 
-if [ "${algorithm^^}" = "RSA" ]; then
-  openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "$TargetKey"
+if [ "${algorithm,,}" = "rsa" ]; then
+  openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048  -out "$TargetKey"
 else
-  openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:secp256k1 -out "$TargetKey"
+  openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:secp256k1  -out "$TargetKey"
 fi
 
 echo "[certificate authority openssl req]"
